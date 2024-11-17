@@ -57,7 +57,7 @@ main() {
 
   # Set transparency variables - Colors and window dividers
   if $transparent_powerline_bg; then
-    bg_color="default"
+    bg_color=default
     window_sep_fg=${dark_purple}
     window_sep_bg=default
     window_sep="$show_inverse_divider"
