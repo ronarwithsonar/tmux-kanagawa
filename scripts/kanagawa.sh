@@ -28,6 +28,8 @@ main() {
   show_powerline=$(get_tmux_option "@kanagawa-show-powerline" false)
   show_flags=$(get_tmux_option "@kanagawa-show-flags" false)
   status_bg=$(get_tmux_option "@kanagawa-status-bg" gray)
+  transparent_powerline_bg=$(get_tmux_option "@kanagawa-transparent-powerline-bg" false)
+  show_inverse_divider=$(get_tmux_option "@kanagawa-inverse-divider" )
 
   # left icon area
   left_icon=$(get_tmux_option "@kanagawa-left-icon" session)
@@ -53,6 +55,19 @@ main() {
   IFS=' ' read -r -a plugins <<<$(get_tmux_option "@kanagawa-plugins" "battery network weather")
   show_empty_plugins=$(get_tmux_option "@kanagawa-show-empty-plugins" true)
 
+  # Set transparency variables - Colors and window dividers
+  if $transparent_powerline_bg; then
+    bg_color="default"
+    window_sep_fg=${dark_purple}
+    window_sep_bg=default
+    window_sep="$show_inverse_divider"
+  else
+    bg_color=${!status_bg}
+    window_sep_fg=${gray}
+    window_sep_bg=${dark_purple}
+    window_sep="$show_left_sep"
+  fi
+  
   # Handle left icon configuration
   case $left_icon in
   smiley)
@@ -99,8 +114,8 @@ main() {
   fi
 
   # Left icon, with prefix status
-  tmux set-option -g status-left "#{?client_prefix,#[fg=${!left_icon_prefix_fg}],#[fg=${!left_icon_fg}]}#{?client_prefix,#[bg=${!left_icon_prefix_bg}],#[bg=${!left_icon_bg}]}${icon_pd_l}${left_icon_content}${icon_pd_r}#{?client_prefix,#[fg=${!left_icon_prefix_bg}],#[fg=${!left_icon_bg}]}#[bg=${!status_bg}]${left_sep}${icon_mg_r}"
-  powerbg=${!status_bg}
+  tmux set-option -g status-left "#{?client_prefix,#[fg=${!left_icon_prefix_fg}],#[fg=${!left_icon_fg}]}#{?client_prefix,#[bg=${!left_icon_prefix_bg}],#[bg=${!left_icon_bg}]}${icon_pd_l}${left_icon_content}${icon_pd_r}#{?client_prefix,#[fg=${!left_icon_prefix_bg}],#[fg=${!left_icon_bg}]}#[bg=${bg_color}]${left_sep}${icon_mg_r}"
+  powerbg=${bg_color}
 
   # Set timezone unless hidden by configuration
   if [[ -z "$timezone" ]]; then
@@ -151,7 +166,7 @@ main() {
   tmux set-option -g message-style "bg=${gray},fg=${white}"
 
   # status bar
-  tmux set-option -g status-style "bg=${!status_bg},fg=${white}"
+  tmux set-option -g status-style "bg=${bg_color},fg=${white}"
 
   # Handle left icon margin
   icon_mg_r=""
@@ -317,7 +332,7 @@ main() {
 
   # Window option
   if $show_powerline; then
-    tmux set-window-option -g window-status-current-format "#[fg=${gray},bg=${dark_purple}]${left_sep}#[fg=${white},bg=${dark_purple}] #I #W${current_flags} #[fg=${dark_purple},bg=${gray}]${left_sep}"
+    tmux set-window-option -g window-status-current-format "#[fg=${window_sep_fg},bg=${window_sep_bg}]${window_sep}#[fg=${white},bg=${dark_purple}] #I #W${current_flags} #[fg=${dark_purple},bg=${bg_color}]${left_sep}"
   else
     tmux set-window-option -g window-status-current-format "#[fg=${white},bg=${dark_purple}] #I #W${current_flags} "
   fi
@@ -326,7 +341,7 @@ main() {
     tmux set-window-option -g window-style "fg=${white},bg=${dark_gray}"
   fi
 
-  tmux set-window-option -g window-status-format "#[fg=${white}]#[bg=${gray}] #I #W${flags}"
+  tmux set-window-option -g window-status-format "#[fg=${white}]#[bg=${bg_color}] #I #W${flags}"
   tmux set-window-option -g window-status-activity-style "bold"
   tmux set-window-option -g window-status-bell-style "bold"
 }
